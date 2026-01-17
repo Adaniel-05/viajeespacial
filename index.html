@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viaje Espacial de Amor</title>
+    <style>
+        /* --- CSS --- */
+        body {
+            margin: 0;
+            overflow: hidden; /* Evita barras de desplazamiento */
+            background-color: #000; /* Fondo negro espacial */
+            height: 100vh;
+            width: 100vw;
+             /* Un degradado sutil para dar profundidad al fondo */
+            background: radial-gradient(ellipse at center, #1b0029 0%, #000000 100%);
+        }
+
+        /* El contenedor principal que define la perspectiva 3D */
+        #space-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            /* 'perspective' es clave: define la profundidad de la escena 3D. */
+            perspective: 1000px;
+            /* 'perspective-origin' es el punto de fuga. Lo moveremos con JS */
+            perspective-origin: 50% 50%;
+            transform-style: preserve-3d;
+        }
+
+        /* Clase base para cualquier elemento que vuela (texto o imagen) */
+        .flying-item {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            /* Inicialmente están lejos en el fondo y pequeños */
+            transform: translate(-50%, -50%) translateZ(-3000px) scale(0.1);
+            opacity: 0;
+            /* La animación que los hace venir hacia la pantalla */
+            animation: flyForward 5s linear forwards;
+            pointer-events: none; /* Para que no interfieran con el mouse */
+            white-space: nowrap;
+        }
+
+        /* Estilos específicos para las imágenes */
+        .img-item {
+            width: 100px; /* Tamaño base de la imagen */
+            height: auto;
+            border-radius: 15px; /* Bordes redondeados como en tu ejemplo */
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(255, 105, 180, 0.6); /* Resplandor rosa */
+        }
+
+        /* Estilos específicos para el texto */
+        .text-item {
+            font-family: 'Arial', sans-serif;
+            font-size: 24px;
+            font-weight: bold;
+            /* Color neón rosa/morado */
+            color: #ff69b4;
+            text-shadow: 
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 20px #ff00de,
+                0 0 30px #ff00de,
+                0 0 40px #ff00de;
+        }
+
+        /* La animación clave: mueve el objeto desde el fondo (Z negativo) hacia el frente */
+        @keyframes flyForward {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) translateZ(-3000px) scale(0.5) rotate(0deg);
+            }
+            20% {
+                 opacity: 1; /* Aparecen gradualmente */
+            }
+            100% {
+                opacity: 1;
+                /* Terminan pasando la "cámara" */
+                transform: translate(-50%, -50%) translateZ(500px) scale(1.5) rotate(var(--rotation));
+            }
+        }
+
+        /* Efecto de líneas de velocidad */
+        .speed-line {
+            position: absolute;
+            background: linear-gradient(to right, rgba(255, 105, 180, 0.8), rgba(255, 0, 222, 0.3), transparent);
+            pointer-events: none;
+            opacity: 0;
+            top: 50%;
+            left: 50%;
+            transform-origin: center center;
+            transform: translate(-50%, -50%) translateZ(-3000px) scaleX(0.1) scaleY(0.3);
+            animation: speedLineMove var(--speed-duration, 3s) linear forwards;
+        }
+
+        @keyframes speedLineMove {
+            0% {
+                opacity: 0.6;
+                transform: translate(-50%, -50%) translateZ(-3000px) scaleX(0.1) scaleY(0.3);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) translateZ(500px) scaleX(1.5) scaleY(1);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="space-container"></div>
+
+    <script>
+        /* --- JAVASCRIPT --- */
+
+        const container = document.getElementById('space-container');
+
+        // 1. TUS DATOS AQUÍ: Reemplaza estas listas con tus frases e imágenes reales.
+        const frases = [
+            "Te amo",
+            "El amor de mi vida",
+            "Te extrañe",
+            "No deje de pensar en ti",
+            "Significas mucho para mi",
+            "Solo tú",
+            "Mi amor verdadero",
+            "Volvi a ser feliz a tu lado",
+            "Eres todo lo que esta bien",
+            "Eres lo que mas anhelo",
+            "Me hiciste tanta falta",
+            "Estas en mi corazon",
+            "Estas metida en mi alma",
+            "<3"
+        ];
+
+        // He usado imágenes de placeholder. ¡Pon aquí las URLs de tus fotos!
+        const imagenes = [
+            "img1.jpg", // Gato ejemplo 1
+            "img2.jpg", // Gato ejemplo 2
+            "img3.jpg",
+            "img4.jpg",
+            "img5.jpg"
+        ];
+
+
+        // Función para crear un elemento (texto o imagen)
+        function spawnItem() {
+            const item = document.createElement('div');
+            
+            // Decidir aleatoriamente si es texto o imagen (50% probabilidad)
+            const isImage = Math.random() > 0.5;
+
+            if (isImage && imagenes.length > 0) {
+                // Es una imagen
+                item.classList.add('flying-item', 'img-item');
+                const imgUrl = imagenes[Math.floor(Math.random() * imagenes.length)];
+                item.style.backgroundImage = `url('${imgUrl}')`;
+                item.style.backgroundSize = 'cover';
+                // Ajustamos un poco el tamaño aleatoriamente
+                const size = 80 + Math.random() * 60;
+                item.style.width = `${size}px`;
+                item.style.height = `${size}px`;
+
+            } else {
+                // Es texto
+                item.classList.add('flying-item', 'text-item');
+                item.innerText = frases[Math.floor(Math.random() * frases.length)];
+                // Ajustamos el tamaño de fuente aleatoriamente
+                item.style.fontSize = `${20 + Math.random() * 20}px`;
+            }
+
+            // Posición aleatoria de inicio en el plano X/Y
+            // Usamos 'vw' y 'vh' para esparcirlos por la pantalla
+            const randomX = (Math.random() - 0.5) * 200; // Rango entre -100vw y 100vw
+            const randomY = (Math.random() - 0.5) * 200; // Rango entre -100vh y 100vh
+            item.style.marginLeft = `${randomX}vw`;
+            item.style.marginTop = `${randomY}vh`;
+
+            // Rotación aleatoria ligera para dar dinamismo
+            const rotation = (Math.random() - 0.5) * 60; // Entre -30 y 30 grados
+            item.style.setProperty('--rotation', `${rotation}deg`);
+
+            // Velocidad aleatoria (duración de la animación)
+            const duration = 3 + Math.random() * 4; // Entre 3 y 7 segundos
+            item.style.animationDuration = `${duration}s`;
+
+            container.appendChild(item);
+
+            // IMPORTANTE: Eliminar el elemento cuando termina la animación para no saturar la memoria
+            setTimeout(() => {
+                item.remove();
+            }, duration * 1000);
+        }
+
+        // Crear elementos continuamente.
+        // Cuanto menor sea el número, más elementos aparecen (y más lento puede ir).
+        setInterval(spawnItem, 200); 
+
+        // Función para crear líneas de velocidad
+        function createSpeedLine() {
+            const line = document.createElement('div');
+            line.classList.add('speed-line');
+            
+            // Posición aleatoria en el plano X/Y (como los elementos que vuelan)
+            const randomX = (Math.random() - 0.5) * 200; // Rango aleatorio
+            const randomY = (Math.random() - 0.5) * 200;
+            line.style.marginLeft = `${randomX}vw`;
+            line.style.marginTop = `${randomY}vh`;
+            
+            // Ancho de la línea (en píxeles)
+            line.style.width = `${80 + Math.random() * 120}px`;
+            line.style.height = `${2 + Math.random() * 3}px`;
+            
+            // Duración aleatoria (más larga para que viaje como los elementos)
+            const duration = 2.5 + Math.random() * 3.5;
+            line.style.animationDuration = `${duration}s`;
+            
+            container.appendChild(line);
+            
+            // Remover la línea cuando termine la animación
+            setTimeout(() => {
+                line.remove();
+            }, duration * 1000);
+        }
+
+        // Crear líneas de velocidad constantemente
+        setInterval(createSpeedLine, 80); 
+
+
+        /* --- INTERACTIVIDAD --- */
+        // Esto maneja el movimiento del punto de fuga con el mouse o el dedo.
+
+        function updatePerspective(x, y) {
+            // Calculamos el porcentaje de la posición en la pantalla
+            const xPct = (x / window.innerWidth) * 100;
+            const yPct = (y / window.innerHeight) * 100;
+            // Movemos el punto de origen de la perspectiva CSS
+            container.style.perspectiveOrigin = `${xPct}% ${yPct}%`;
+        }
+
+        // Para PC (Mouse)
+        document.addEventListener('mousemove', (e) => {
+            updatePerspective(e.clientX, e.clientY);
+        });
+
+        // Para Móvil (Touch)
+        document.addEventListener('touchmove', (e) => {
+            // Previene el scroll de la pantalla en móviles
+            e.preventDefault(); 
+            const touch = e.touches[0];
+            updatePerspective(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+    </script>
+</body>
+</html>
